@@ -11,4 +11,5 @@ install:
 build: off
 
 test_script:
-  - python flaskapp/some_app.py
+  - cd flaskapp
+  - bash st.sh
