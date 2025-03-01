@@ -12,7 +12,6 @@ install:
   - pip install flask-bootstrap
   - pip install flask-wtf
   - pip install pillow
-  - pip install --extra-index-url https://pypi.anaconda.org/anaconda/simple tensorflow-cpu==2.10.0
   - pip install keras
 
 before_build:
