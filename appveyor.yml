@@ -12,7 +12,7 @@ install:
   - pip install flask-bootstrap
   - pip install flask-wtf
   - pip install pillow
-  - pip install tensorflow==2.0.0-alpha0
+  - pip install tensorflow
   - pip install keras
 
 before_build:
