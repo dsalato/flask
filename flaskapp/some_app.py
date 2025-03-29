@@ -49,38 +49,31 @@ class NetForm(FlaskForm):
 @app.route("/net", methods=['GET', 'POST'])
 def net():
     form = NetForm()
-    filename = None
-    neurodic = {}
-
     if form.validate_on_submit():
-        # Сохраняем загруженный файл
-        f = form.upload.data
-        filename = secure_filename(f.filename)
-        filepath = os.path.join(
-            app.root_path,
-            'static',
-            'uploads',
-            filename
-        )
-        f.save(filepath)
+        try:
+            img = Image.open(form.upload.data.stream)
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
 
-        # Классификация изображения
-        _, images = neuronet.read_image_files(1, os.path.dirname(filepath))
-        decode = neuronet.getresult(images)
+            # Сохранение и обработка
+            filename = secure_filename(form.upload.data.filename)
+            save_path = os.path.join('static', 'uploads', filename)
+            img.save(save_path)
 
-        # Формируем результаты
-        for elem in decode:
-            neurodic[elem[0][1]] = f"{elem[0][2] * 100:.2f}%"
+            # Классификация
+            _, images = neuronet.read_image_files(1, os.path.dirname(save_path))
+            decode = neuronet.getresult(images)
+            neurodic = {elem[0][1]: f"{elem[0][2] * 100:.2f}%" for elem in decode}
 
-        # Относительный путь для HTML
-        filename = f"uploads/{filename}"
+            return render_template('net.html',
+                                   form=form,
+                                   image_name=f"uploads/{filename}",
+                                   neurodic=neurodic)
 
-    return render_template(
-        'net.html',
-        form=form,
-        image_name=filename,
-        neurodic=neurodic
-    )
+        except Exception as e:
+            app.logger.error(f"Image processing error: {str(e)}")
+
+    return render_template('net.html', form=form)
 
 
 from flask import request, Response, jsonify
