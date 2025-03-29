@@ -8,7 +8,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Загрузка модели
 model = ResNet50(weights='imagenet')
 
 
@@ -47,18 +46,15 @@ def getresult(image_box):
         processed_images = []
         for img in image_box:
             img = img.resize((224, 224))
-            x = image.img_to_array(img)
+            x = np.array(img)
             x = np.expand_dims(x, axis=0)
             x = preprocess_input(x)
             processed_images.append(x)
 
-        # Объединение в один батч
         processed_images = np.vstack(processed_images)
-
-        # Предсказание
         preds = model.predict(processed_images)
         return decode_predictions(preds, top=1)
 
     except Exception as e:
-        logger.error(f"Error in getresult: {str(e)}")
+        logger.error(f"Error in getresult: {str(e)}", exc_info=True)
         return []
