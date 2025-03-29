@@ -140,5 +140,34 @@ def apinet():
         logger.error(f"Unexpected error: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
+from flask import make_response
+import lxml.etree as ET
+import os
+
+@app.route("/apixml", methods=['GET'])
+def apixml():
+    try:
+        # Проверяем существование файлов
+        xml_path = os.path.join(app.root_path, 'static', 'xml', 'file.xml')
+        xslt_path = os.path.join(app.root_path, 'static', 'xml', 'file.xslt')
+
+        if not os.path.exists(xml_path) or not os.path.exists(xslt_path):
+            return "XML or XSLT file not found", 404
+
+        # Парсинг и преобразование
+        dom = ET.parse(xml_path)
+        xslt = ET.parse(xslt_path)
+        transform = ET.XSLT(xslt)
+        result = transform(dom)
+
+        # Создаем ответ с правильным MIME-типом
+        response = make_response(ET.tostring(result, encoding='unicode'))
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        return response
+
+    except Exception as e:
+        app.logger.error(f"Error in apixml: {str(e)}")
+        return f"Error processing XML: {str(e)}", 500
+
 if __name__ == "__main__":
     app.run(host='127.0.0.1', port=5000)

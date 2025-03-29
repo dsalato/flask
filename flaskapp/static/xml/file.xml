@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="file.xslt" ?>
+<people>
+  <person id="1">
+    <name>John Doe</name>
+    <age>30</age>
+    <occupation>Software Engineer</occupation>
+  </person>
+  <person id="2">
+    <name>Jane Smith</name>
+    <age>25</age>
+    <occupation>Data Scientist</occupation>
+  </person>
+</people>

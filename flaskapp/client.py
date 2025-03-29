@@ -39,7 +39,27 @@ def test_api(image_path, api_url='http://localhost:5000/apinet'):
         return None
 
 
+def test_xml_api():
+    try:
+        url = 'http://localhost:5000/apixml'
+        r = requests.get(url, timeout=10)
+
+        print(f"XML API Status: {r.status_code}")
+        if r.status_code == 200:
+            print("XML Transformation successful")
+            print(r.text[:500])  # Печатаем часть ответа для проверки
+        return r.status_code == 200
+    except Exception as e:
+        print(f"XML API Error: {str(e)}")
+        return False
+
 if __name__ == "__main__":
-    # Пример использования
     image_path = os.path.join('static', 'image0008.png')
-    test_api(image_path)
+
+    test_results = [
+        test_xml_api(),
+        test_api(image_path)
+    ]
+
+    exit_code = 0 if all(test_results) else 1
+    exit(exit_code)

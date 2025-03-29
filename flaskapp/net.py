@@ -1,46 +1,64 @@
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
-import numpy as np
 import os
 from PIL import Image
+import numpy as np
+from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
+from tensorflow.keras.applications import ResNet50
+import logging
 
-# Загрузка предобученной модели ResNet50
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Загрузка модели
 model = ResNet50(weights='imagenet')
 
 
 def read_image_files(files_max_count, dir_name):
-    """Чтение изображений из указанной директории"""
-    files = [f for f in os.listdir(dir_name)
-             if f.lower().endswith(('.png', '.jpg', '.jpeg'))][:files_max_count]
-    images = []
-    for file in files:
-        img_path = os.path.join(dir_name, file)
-        try:
-            img = Image.open(img_path)
-            images.append(img)
-        except:
-            continue
-    return len(images), images
+    """Читает изображения из директории с обработкой ошибок"""
+    try:
+        files = [f for f in os.listdir(dir_name)
+                 if f.lower().endswith(('.png', '.jpg', '.jpeg'))][:files_max_count]
+
+        images = []
+        for file in files:
+            try:
+                img_path = os.path.join(dir_name, file)
+                img = Image.open(img_path)
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                images.append(img)
+            except Exception as e:
+                logger.warning(f"Skipping {file}: {str(e)}")
+                continue
+
+        return len(images), images
+
+    except Exception as e:
+        logger.error(f"Error in read_image_files: {str(e)}")
+        return 0, []
 
 
 def getresult(image_box):
+    """Классификация изображений с обработкой ошибок"""
     try:
-        images_resized = []
-        for img in image_box:
-            # Конвертируем RGBA в RGB, если нужно
-            if img.mode == 'RGBA':
-                img = img.convert('RGB')
+        if not image_box:
+            return []
 
+        # Подготовка изображений
+        processed_images = []
+        for img in image_box:
             img = img.resize((224, 224))
             x = image.img_to_array(img)
             x = np.expand_dims(x, axis=0)
             x = preprocess_input(x)
-            images_resized.append(x)
+            processed_images.append(x)
 
-        images_resized = np.vstack(images_resized)
-        preds = model.predict(images_resized)
+        # Объединение в один батч
+        processed_images = np.vstack(processed_images)
+
+        # Предсказание
+        preds = model.predict(processed_images)
         return decode_predictions(preds, top=1)
+
     except Exception as e:
-        print(f"Error in getresult: {str(e)}")
+        logger.error(f"Error in getresult: {str(e)}")
         return []
