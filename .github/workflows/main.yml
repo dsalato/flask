@@ -1,0 +1,45 @@
+name: Python App Runner
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  run-app:
+    name: Run Application
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install flask gunicorn requests flask-bootstrap flask-wtf pillow keras
+    
+    - name: Fix script permissions (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: powershell
+      run: |
+        attrib -R .\flaskapp\st.sh
+        icacls .\flaskapp\st.sh /grant Everyone:F
+    
+    - name: Make script executable (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: chmod +x ./flaskapp/st.sh
+    
+    - name: Run application
+      shell: bash
+      run: |
+        cd flaskapp
+        ./st.sh
