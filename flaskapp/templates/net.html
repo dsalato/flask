@@ -1,22 +1,57 @@
 {% extends "bootstrap/base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
-{% block title %}This is an page{% endblock %}
+
+{% block title %}Классификация изображений{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    .container {
+        margin-top: 30px;
+    }
+    .results {
+        margin-top: 20px;
+    }
+    .image-preview {
+        max-width: 300px;
+        margin-top: 20px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-{{ wtf.quick_form(form, method='post',enctype="multipart/form-data", action="net") }}
-<h2>Classes: </h2>
-<!—проверяем, есть ли данные классификации -->
-{% if neurodic %}
- {% for key, value in neurodic.items() %}
- <h3>{{key}}: {{value}}</h3>
- {% endfor %}
-{% else %}
- <h3> There is no classes </h3>
-{% endif %}
-<h2>Image is here: </h2>
-{% if image_name %}
- <p>{{image_name}}
- <p><img src={{image_name}} class="img-rounded" alt="My Image" width = 224 height=224 />
-{% else %}
- <p> There is no image yet </p>
-{% endif %}
+<div class="container">
+    <h1>Классификация изображений с помощью нейросети</h1>
+
+    <div class="row">
+        <div class="col-md-6">
+            {{ wtf.quick_form(form, method='post',
+                            enctype="multipart/form-data",
+                            action=url_for('net'),
+                            button_map={'submit': 'primary'}) }}
+        </div>
+    </div>
+
+    {% if neurodic %}
+    <div class="results">
+        <h2>Результаты классификации:</h2>
+        <ul class="list-group">
+            {% for class_name, probability in neurodic.items() %}
+            <li class="list-group-item">
+                <strong>{{ class_name }}</strong>: {{ probability }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if image_name %}
+    <div class="image-preview">
+        <h2>Загруженное изображение:</h2>
+        <img src="{{ url_for('static', filename=image_name) }}"
+             class="img-thumbnail"
+             alt="Загруженное изображение">
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

@@ -1,61 +1,46 @@
-import random
-# библиотека keras для НС
-import keras
-# входной слой сети и модель сети
-81
-from keras.layers import Input
-from keras.models import Model
-# одна из предобученных сетей
-from keras.applications.resnet50 import preprocess_input, decode_predictions
-import os
-# модуль работы с изображениями
-from PIL import Image
+from tensorflow.keras.applications import ResNet50
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
 import numpy as np
-# для конфигурации gpu
-from tensorflow.compat.v1 import ConfigProto
-from tensorflow.compat.v1 import InteractiveSession
-# настраиваем работу с GPU, для CPU эта часть не нужна
-config = ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction = 0.7
-config.gpu_options.allow_growth = True
-session = InteractiveSession(config=config)
-height = 224
-width = 224
-nh=224
-nw=224
-ncol=3
-# загружаем и создаем стандартную уже обученную сеть keras
-visible2 = Input(shape=(nh,nw,ncol),name = 'imginp')
-resnet = keras.applications.resnet_v2.ResNet50V2(include_top=True,
-weights='imagenet', input_tensor=visible2,
-input_shape=None, pooling=None, classes=1000)
-# чтение изображений из каталога
-# учтите, если там есть файлы, не соответствующие изображениям, или каталоги
-# возникнет ошибка
-def read_image_files(files_max_count,dir_name):
-    files = os.listdir(dir_name)
-    files_count = files_max_count
-    if(files_max_count>len(files)): # определяем количество файлов не больше max
-        files_count = len(files)
-    image_box = [[]]*files_count
-    for file_i in range(files_count): # читаем изображения в список
-        image_box[file_i] = Image.open(dir_name+'/'+files[file_i]) # / ??
-    return files_count, image_box
-# возвращаем результаты работы нейронной сети
+import os
+from PIL import Image
+
+# Загрузка предобученной модели ResNet50
+model = ResNet50(weights='imagenet')
+
+
+def read_image_files(files_max_count, dir_name):
+    """Чтение изображений из указанной директории"""
+    files = [f for f in os.listdir(dir_name)
+             if f.lower().endswith(('.png', '.jpg', '.jpeg'))][:files_max_count]
+    images = []
+    for file in files:
+        img_path = os.path.join(dir_name, file)
+        try:
+            img = Image.open(img_path)
+            images.append(img)
+        except:
+            continue
+    return len(images), images
+
+
 def getresult(image_box):
-    files_count = len(image_box)
-    images_resized = [[]]*files_count
-# нормализуем изображения и преобразуем в numpy
-    for i in range(files_count):
-        images_resized[i] = np.array(image_box[i].resize((height,width)))/255.0
-    images_resized = np.array(images_resized)
-# подаем на вход сети изображение в виде numpy массивов
-    out_net = resnet.predict(images_resized)
-# декодируем ответ сети в один распознанный класс top=1 (можно больше классов)
-    decode = decode_predictions(out_net, top=1)
-    return decode
-# заранее вызываем работу сети, так как работа с gpu требует времени
-# из-за инициализации библиотек
-# возможно, лучше убрать и закомментировать эти строки
-# fcount, fimage = read_image_files(1,'./static')
-# decode = getresult(fimage)
+    try:
+        images_resized = []
+        for img in image_box:
+            # Конвертируем RGBA в RGB, если нужно
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+
+            img = img.resize((224, 224))
+            x = image.img_to_array(img)
+            x = np.expand_dims(x, axis=0)
+            x = preprocess_input(x)
+            images_resized.append(x)
+
+        images_resized = np.vstack(images_resized)
+        preds = model.predict(images_resized)
+        return decode_predictions(preds, top=1)
+    except Exception as e:
+        print(f"Error in getresult: {str(e)}")
+        return []
