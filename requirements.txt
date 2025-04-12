@@ -1,4 +1,4 @@
-tensorflow-cpu==2.12.0
+tensorflow-cpu
 pillow==9.5.0
 flask
 requests
