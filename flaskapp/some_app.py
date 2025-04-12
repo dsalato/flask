@@ -151,6 +151,38 @@ def apixml():
         app.logger.error(f"Error in apixml: {str(e)}")
         return f"Error processing XML: {str(e)}", 500
 
+
+from flask import request, send_file
+from utils.image_processor import resize_image
+from utils.color_analysis import plot_color_distribution
+import base64
+import io
+
+@app.route('/resize', methods=['GET', 'POST'])
+def resize_image_route():
+    if request.method == 'POST':
+        file = request.files['image']
+        scale = float(request.form['scale'])
+
+        img_bytes = file.read()
+        resized_img = resize_image(img_bytes, scale)
+
+        original_img = Image.open(io.BytesIO(img_bytes))
+        original_plot = plot_color_distribution(original_img, "Original")
+        resized_plot = plot_color_distribution(resized_img, "Resized")
+
+        buffered = io.BytesIO()
+        resized_img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+        return render_template('resize.html',
+                               img_data=img_str,
+                               original_plot=base64.b64encode(original_plot.getvalue()).decode('utf-8'),
+                               resized_plot=base64.b64encode(resized_plot.getvalue()).decode('utf-8'),
+                               scale=scale)
+
+    return render_template('resize.html')
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
