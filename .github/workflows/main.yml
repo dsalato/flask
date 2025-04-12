@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest  # Используем только Linux
+    runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
@@ -24,7 +24,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install tensorflow-cpu==2.12.0 pillow==9.5.0
-        pip install flask requests flask-bootstrap flask-wtf keras lxml
+        pip install flask requests flask-bootstrap flask-wtf keras lxml gunicorn
 
     - name: Run tests
       run: |
