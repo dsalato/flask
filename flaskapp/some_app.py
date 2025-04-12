@@ -55,12 +55,10 @@ def net():
             if img.mode == 'RGBA':
                 img = img.convert('RGB')
 
-            # Сохранение и обработка
             filename = secure_filename(form.upload.data.filename)
             save_path = os.path.join('static', 'uploads', filename)
             img.save(save_path)
 
-            # Классификация
             _, images = neuronet.read_image_files(1, os.path.dirname(save_path))
             decode = neuronet.getresult(images)
             neurodic = {elem[0][1]: f"{elem[0][2] * 100:.2f}%" for elem in decode}
@@ -83,42 +81,33 @@ from io import BytesIO
 import json
 import logging
 
-# Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 @app.route("/apinet", methods=['POST'])
 def apinet():
-    """API endpoint для классификации изображений"""
     try:
-        # Проверка Content-Type
         if not request.is_json:
             return jsonify({"error": "Request must be JSON"}), 400
 
         data = request.get_json()
 
-        # Валидация входных данных
         if 'imagebin' not in data or not isinstance(data['imagebin'], str):
             return jsonify({"error": "Invalid or missing 'imagebin' field"}), 400
 
         try:
-            # Декодирование base64
             filebytes = data['imagebin'].encode('utf-8')
             cfile = base64.b64decode(filebytes)
 
-            # Проверка размера изображения (макс. 5MB)
             if len(cfile) > 5 * 1024 * 1024:
                 return jsonify({"error": "Image too large (max 5MB)"}), 400
 
-            # Открытие изображения
             img = Image.open(BytesIO(cfile))
 
-            # Проверка формата изображения
             if img.format not in ['JPEG', 'PNG']:
                 return jsonify({"error": "Only JPEG and PNG images supported"}), 400
 
-            # Классификация
             decode = neuronet.getresult([img])
             neurodic = {elem[0][1]: float(elem[0][2]) for elem in decode}
 
@@ -140,20 +129,17 @@ import os
 @app.route("/apixml", methods=['GET'])
 def apixml():
     try:
-        # Проверяем существование файлов
         xml_path = os.path.join(app.root_path, 'static', 'xml', 'file.xml')
         xslt_path = os.path.join(app.root_path, 'static', 'xml', 'file.xslt')
 
         if not os.path.exists(xml_path) or not os.path.exists(xslt_path):
             return "XML or XSLT file not found", 404
 
-        # Парсинг и преобразование
         dom = ET.parse(xml_path)
         xslt = ET.parse(xslt_path)
         transform = ET.XSLT(xslt)
         result = transform(dom)
 
-        # Создаем ответ с правильным MIME-типом
         response = make_response(ET.tostring(result, encoding='unicode'))
         response.headers['Content-Type'] = 'text/html; charset=utf-8'
         return response

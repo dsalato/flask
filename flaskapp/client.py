@@ -6,23 +6,18 @@ from io import BytesIO
 
 
 def encode_image_to_base64(image_path):
-    """Кодирует изображение в base64"""
     with open(image_path, 'rb') as f:
         img_data = f.read()
         return base64.b64encode(img_data).decode('utf-8')
 
 
 def test_api(image_path, api_url='http://localhost:5000/apinet'):
-    """Тестирует API классификации"""
     try:
-        # Подготовка данных
         b64_image = encode_image_to_base64(image_path)
         jsondata = {'imagebin': b64_image}
 
-        # Отправка запроса
         response = requests.post(api_url, json=jsondata, timeout=10)
 
-        # Обработка ответа
         if response.ok:
             result = response.json()
             print("Успешный ответ:")
@@ -47,7 +42,7 @@ def test_xml_api():
         print(f"XML API Status: {r.status_code}")
         if r.status_code == 200:
             print("XML Transformation successful")
-            print(r.text[:500])  # Печатаем часть ответа для проверки
+            print(r.text[:500])
         return r.status_code == 200
     except Exception as e:
         print(f"XML API Error: {str(e)}")
