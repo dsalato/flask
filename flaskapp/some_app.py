@@ -20,7 +20,10 @@ from wtforms.validators import DataRequired
 from flask_wtf.file import FileField, FileAllowed, FileRequired
 from werkzeug.utils import secure_filename
 import os
-import net as neuronet
+try:
+    from . import net as neuronet
+except ImportError:
+    import net as neuronet
 import secrets
 
 SECRET_KEY = secrets.token_hex(32)
