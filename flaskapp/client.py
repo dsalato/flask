@@ -1,16 +1,14 @@
 import os
 import base64
 import requests
-from PIL import Image
-from io import BytesIO
 
-
+# Кодирует изображение в base64 строку
 def encode_image_to_base64(image_path):
     with open(image_path, 'rb') as f:
         img_data = f.read()
         return base64.b64encode(img_data).decode('utf-8')
 
-
+# Тестирует основной API классификации изображений
 def test_api(image_path, api_url='http://localhost:5000/apinet'):
     try:
         b64_image = encode_image_to_base64(image_path)
@@ -33,7 +31,7 @@ def test_api(image_path, api_url='http://localhost:5000/apinet'):
         print(f"Ошибка при выполнении запроса: {str(e)}")
         return None
 
-
+# Тестирует вспомогательное XML API
 def test_xml_api():
     try:
         url = 'http://localhost:5000/apixml'
@@ -48,6 +46,7 @@ def test_xml_api():
         print(f"XML API Error: {str(e)}")
         return False
 
+# Точка входа - запускает тесты обоих API
 if __name__ == "__main__":
     image_path = os.path.join('static', 'image0008.png')
 
@@ -55,6 +54,6 @@ if __name__ == "__main__":
         test_xml_api(),
         test_api(image_path)
     ]
-
+    # Завершает с кодом 0 при успехе всех тестов, иначе 1
     exit_code = 0 if all(test_results) else 1
     exit(exit_code)

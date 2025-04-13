@@ -1,30 +1,25 @@
 {% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
 {% block content %}
 <div class="container">
-    <h1>Image Resizer</h1>
-    <form method="post" enctype="multipart/form-data">
-        <div class="form-group">
-            <label>Select Image</label>
-            <input type="file" name="image" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label>Scale Percent</label>
-            <input type="number" name="scale" class="form-control" value="100" min="1" max="500" step="1">
-        </div>
-        <button type="submit" class="btn btn-primary">Process</button>
-    </form>
+    <h1>Изменение размера изображения</h1>
+
+    {{ wtf.quick_form(form, method='post',
+                    enctype="multipart/form-data",
+                    button_map={'submit': 'primary'}) }}
 
     {% if img_data %}
     <div class="row mt-4">
         <div class="col-md-6">
-            <h3>Resized Image ({{ scale }}%)</h3>
+            <h3>Процент масштаба: {{ scale }}%</h3>
             <img src="data:image/png;base64,{{ img_data }}" class="img-fluid">
         </div>
-        <div class="col-md-6">
-            <h3>Original Color Distribution</h3>
+        <div class="col-md-5">
+            <h3>Исходное распределение цветов</h3>
             <img src="data:image/png;base64,{{ original_plot }}" class="img-fluid">
             
-            <h3 class="mt-4">Resized Color Distribution</h3>
+            <h3 class="mt-4">Измененное распределение цветов</h3>
             <img src="data:image/png;base64,{{ resized_plot }}" class="img-fluid">
         </div>
     </div>
