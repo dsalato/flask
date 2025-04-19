@@ -18,8 +18,8 @@ from wtforms.validators import DataRequired, NumberRange
 from PIL import Image
 import lxml.etree as ET
 from werkzeug.utils import secure_filename
-from utils.image_processor import resize_image
-from utils.color_analysis import plot_color_distribution
+from flaskapp.utils.image_processor import resize_image
+from flaskapp.utils.color_analysis import plot_color_distribution
 
 try:
     from . import net as neuronet
